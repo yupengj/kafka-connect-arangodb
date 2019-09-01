@@ -1,0 +1,47 @@
+==========新增 修改数据格式==============
+SinkRecord {
+    kafkaOffset = 0,
+    timestampType = CreateTime
+}
+ConnectRecord {
+     topic = 'ibom.mstdata.md_feature',
+     kafkaPartition = 0,
+     key = Struct {
+        md_feature_id = 1898
+    },
+    keySchema = Schema {
+        STRING
+    },
+    value = Struct {
+        after = Struct {
+            md_feature_id = 1898, feature_code = J6, feature_name = J6, feature_desc = , is_forced = false, feature_category = N1_MARKET, status = CURRENT, effective_from = 1560272229051000, sales_group = , path = 1898 / , simple_code = , is_optional = false, opt_counter = 2, created_by = 1, create_date = 1560272204843000, updated_by = 1, update_date = 1560272229051000, is_deleted = false, business_scope = ENGINEERING, SALE, manufacture_group = , engineering_group = , feature_content =
+        },
+        source = Struct {
+            version = 0.9 .5.Final, connector = postgresql, name = ibom, db = postgres, ts_usec = 1564500552848000, txId = 10904, lsn = 218339320, schema = mstdata, table = md_feature, snapshot = true, last_snapshot_record = false
+        },
+        op = r, ts_ms = 1564500552848
+    },
+    valueSchema = Schema {
+        ibom.mstdata.md_feature.Envelope: STRUCT
+    },
+    timestamp = 1564500560300, headers = ConnectHeaders(headers = )
+}
+
+=======删除数据格式============
+{
+	kafkaOffset = 76311, timestampType = CreateTime
+}
+ConnectRecord {
+	topic = 'ibom.bommgmt.bm_part_assembly_ext',
+	kafkaPartition = 0,
+	key = Struct {
+		bm_part_assembly_ext_id = 134101
+	},
+	keySchema = Schema {
+		ibom.bommgmt.bm_part_assembly_ext.Key: STRUCT
+	},
+	value = null,
+	valueSchema = null,
+	timestamp = 1565760416361,
+	headers = ConnectHeaders(headers = )
+}

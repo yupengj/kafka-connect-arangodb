@@ -1,0 +1,18 @@
+{
+  "name": "arangodb-sink-test",
+  "config": {
+    "connector.class": "com.gant.kafka.connect.arangodb.ArangoDbSinkConnector",
+    "tasks.max": "1",
+    "key.converter": "org.apache.kafka.connect.json.JsonConverter",
+    "value.converter": "org.apache.kafka.connect.json.JsonConverter",
+    "topics.regex": "^ibom[.].*",
+    "transforms": "cdc",
+    "transforms.cdc.type": "com.gant.kafka.connect.arangodb.transforms.Cdc",
+    "arangodb.host": "192.168.4.109",
+    "arangodb.port": "8529",
+    "arangodb.user": "root",
+    "arangodb.password": "arangodb",
+    "arangodb.database.name": "ibom",
+    "consumer.max.partition.fetch.bytes": "52428800"
+  }
+}
