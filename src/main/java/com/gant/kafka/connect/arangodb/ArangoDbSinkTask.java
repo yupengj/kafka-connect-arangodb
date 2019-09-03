@@ -20,10 +20,10 @@ import com.arangodb.ArangoDB;
 import com.arangodb.ArangoDatabase;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.gant.kafka.connect.arangodb.config.ArangoDbSinkConfig;
 import com.gant.kafka.connect.arangodb.entity.ArangoBase;
 import com.gant.kafka.connect.arangodb.entity.ArangoEdge;
 import com.gant.kafka.connect.arangodb.entity.ArangoVertex;
+import com.gant.kafka.connect.arangodb.entity.EdgeMetadata;
 import com.gant.kafka.connect.arangodb.util.PropertiesLoader;
 import com.gant.kafka.connect.arangodb.writer.EdgeMetadataCache;
 import com.gant.kafka.connect.arangodb.writer.EdgeMetadataConsumer;
@@ -107,7 +107,8 @@ public class ArangoDbSinkTask extends SinkTask {
 		// 删除边关系元数据时，删除边的 collection
 		if (!edgeMetadataCache.getRemoveRelation().isEmpty()) {
 			LOGGER.info("drop edge collection {}", Arrays.toString(edgeMetadataCache.getRemoveRelation().toArray()));
-			edgeWriter.dropCollection(edgeMetadataCache.getRemoveRelation().stream().map(it -> it.edgeCollection).distinct().collect(Collectors.toList()));
+			edgeWriter.dropCollection(
+					edgeMetadataCache.getRemoveRelation().stream().map(EdgeMetadata::getEdgeCollection).distinct().collect(Collectors.toList()));
 			edgeMetadataCache.getRemoveRelation().clear();
 		}
 	}

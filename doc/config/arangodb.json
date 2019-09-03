@@ -8,11 +8,13 @@
     "topics.regex": "^ibom[.].*",
     "transforms": "cdc",
     "transforms.cdc.type": "com.gant.kafka.connect.arangodb.transforms.Cdc",
-    "arangodb.host": "192.168.4.109",
+    "arangodb.host": "arangodb",
     "arangodb.port": "8529",
     "arangodb.user": "root",
     "arangodb.password": "arangodb",
     "arangodb.database.name": "ibom",
+    "edge.metadata.kafka.servers": "192.168.4.109:9092",
+    "edge.metadata.topic": "ibom.mstdata.md_relation_metadata",
     "consumer.max.partition.fetch.bytes": "52428800"
   }
 }

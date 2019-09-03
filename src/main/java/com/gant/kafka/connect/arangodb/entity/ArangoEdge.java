@@ -36,4 +36,10 @@ public class ArangoEdge extends ArangoBase {
 	public int hashCode() {
 		return Objects.hash(super.hashCode(), baseEdgeDocument);
 	}
+
+	@Override
+	public String toString() {
+		return "ArangoEdge{" + "baseEdgeDocument=" + baseEdgeDocument + ", collection='" + collection + '\'' + ", key='" + key + '\'' + ", op='" + op + '\''
+				+ '}';
+	}
 }

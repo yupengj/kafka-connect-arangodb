@@ -103,9 +103,6 @@ public class RecordConverter {
 	}
 
 	private String[] getKey(final SinkRecord record) {
-		if (record.value() == null) {
-			return new String[2];
-		}
 		final String keyFieldName;
 		final String keyValue;
 
@@ -128,14 +125,14 @@ public class RecordConverter {
 		}
 		if (arangoVertex.value == null) { //删除操作, 在 fromCollection 或者在 toCollection 都需要处理
 			return edgeMetadataCache.getCache().stream()
-					.anyMatch(it -> it.fromCollection.equals(arangoVertex.collection) || it.toCollection.equals(arangoVertex.collection));
+					.anyMatch(it -> it.getFromCollection().equals(arangoVertex.collection) || it.getToCollection().equals(arangoVertex.collection));
 		}
 
 		// 新增、修改操作，只处理 fromCollection 中的记录就可以。
 		// 1. 连接器处理的都是外键约束
 		// 2. 外键约束从源点就可以知道目标点的id，所以知道源点就可以构建边的关系
 		// 3. 目标的都是主键，目标点的新增不会产生边，目标点的修改不会修改主键，所以也不会对边产生修改
-		return edgeMetadataCache.getCache().stream().anyMatch(it -> it.fromCollection.equals(arangoVertex.collection));
+		return edgeMetadataCache.getCache().stream().anyMatch(it -> it.getFromCollection().equals(arangoVertex.collection));
 	}
 
 	private List<EdgeMetadata> getEdgeMetadata(ArangoVertex arangoVertex) {
@@ -144,9 +141,9 @@ public class RecordConverter {
 		}
 		Predicate<EdgeMetadata> predicate;
 		if (arangoVertex.value == null) {
-			predicate = it -> it.fromCollection.equals(arangoVertex.collection) || it.toCollection.equals(arangoVertex.collection);
+			predicate = it -> it.getFromCollection().equals(arangoVertex.collection) || it.getToCollection().equals(arangoVertex.collection);
 		} else {
-			predicate = it -> it.fromCollection.equals(arangoVertex.collection);
+			predicate = it -> it.getFromCollection().equals(arangoVertex.collection);
 		}
 		return edgeMetadataCache.getCache().stream().filter(predicate).collect(Collectors.toList());
 	}
@@ -167,15 +164,15 @@ public class RecordConverter {
 	private ArangoEdge createArangoEdge(EdgeMetadata edgeMetadata, final ArangoVertex arangoVertex, final ObjectNode jsonNodes) {
 		final String from = arangoVertex.collection + "/" + arangoVertex.key;
 		if (jsonNodes == null) {
-			return new ArangoEdge(edgeMetadata.edgeCollection, from, null);
+			return new ArangoEdge(edgeMetadata.getEdgeCollection(), from, null);
 		}
 
-		final JsonNode toKey = jsonNodes.get(edgeMetadata.toAttribute);
+		final JsonNode toKey = jsonNodes.get(edgeMetadata.getFromAttribute());
 		if (toKey == null) {
-			return new ArangoEdge(edgeMetadata.edgeCollection, from, null);
+			return new ArangoEdge(edgeMetadata.getEdgeCollection(), from, null);
 		}
-		String to = edgeMetadata.toCollection + "/" + toKey.toString();
-		return new ArangoEdge(edgeMetadata.edgeCollection, from, to);
+		String to = edgeMetadata.getToCollection() + "/" + toKey.textValue();
+		return new ArangoEdge(edgeMetadata.getEdgeCollection(), from, to);
 	}
 
 }

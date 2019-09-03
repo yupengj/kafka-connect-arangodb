@@ -24,7 +24,7 @@ public class ArangoVertex extends ArangoBase {
 			return false;
 		}
 		ArangoVertex that = (ArangoVertex) o;
-		return value.equals(that.value);
+		return Objects.equals(value, that.value);
 	}
 
 	@Override

@@ -8,7 +8,6 @@ import org.apache.kafka.common.config.ConfigDef;
 import org.apache.kafka.connect.connector.Task;
 import org.apache.kafka.connect.sink.SinkConnector;
 
-import com.gant.kafka.connect.arangodb.config.ArangoDbSinkConfig;
 import com.gant.kafka.connect.arangodb.util.PropertiesLoader;
 
 

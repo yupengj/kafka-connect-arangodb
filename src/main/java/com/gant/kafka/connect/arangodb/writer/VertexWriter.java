@@ -7,6 +7,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.arangodb.ArangoDatabase;
+import com.arangodb.model.CollectionCreateOptions;
 import com.arangodb.model.DocumentCreateOptions;
 import com.arangodb.model.DocumentDeleteOptions;
 import com.gant.kafka.connect.arangodb.entity.ArangoBase;
@@ -25,7 +26,7 @@ public class VertexWriter extends Writer {
 		for (ArangoBase record : records) {
 			documentKeys.add(record.key);
 		}
-		getCollection(collection).deleteDocuments(documentKeys, null, new DocumentDeleteOptions().waitForSync(true).silent(true));
+		getCollection(collection).deleteDocuments(documentKeys, null, new DocumentDeleteOptions().silent(true));
 	}
 
 	protected void repsertBatch(final String collection, final List<ArangoBase> records) {
@@ -35,6 +36,11 @@ public class VertexWriter extends Writer {
 			ArangoVertex arangoVertex = (ArangoVertex) record;
 			documentValues.add(arangoVertex.value);
 		}
-		getCollection(collection).insertDocuments(documentValues, new DocumentCreateOptions().overwrite(true).waitForSync(true).silent(true));
+		getCollection(collection).insertDocuments(documentValues, new DocumentCreateOptions().overwrite(true).silent(true));
+	}
+
+	@Override
+	protected CollectionCreateOptions getCollectionOptions() {
+		return new CollectionCreateOptions().waitForSync(true);
 	}
 }

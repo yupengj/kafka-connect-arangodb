@@ -1,12 +1,11 @@
 package com.gant.kafka.connect.arangodb.writer;
 
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
-import org.apache.kafka.connect.data.Schema;
-import org.apache.kafka.connect.data.SchemaBuilder;
-import org.apache.kafka.connect.data.Struct;
 import org.apache.kafka.connect.json.JsonConverter;
 import org.apache.kafka.connect.json.JsonConverterConfig;
 import org.apache.kafka.connect.json.JsonDeserializer;
@@ -15,14 +14,17 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.gant.kafka.connect.arangodb.entity.ArangoEdge;
 import com.gant.kafka.connect.arangodb.entity.ArangoVertex;
+import com.gant.kafka.connect.arangodb.entity.EdgeMetadata;
+import com.gant.kafka.connect.arangodb.util.SinkRecordUtils;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class RecordConverterTests {
-	private final Schema keyStructSchema = SchemaBuilder.struct().name("key").version(1).doc("key schema").field("md_material_id", Schema.INT32_SCHEMA).build();
-	private final Schema valueStructSchema = SchemaBuilder.struct().name("value").version(1).doc("value schema").field("materila_num", Schema.STRING_SCHEMA)
-			.field("materila_name", Schema.STRING_SCHEMA).build();
 
 	private static RecordConverter recordConverter;
+	private static EdgeMetadataCache edgeMetadataCache;
 
 	@BeforeAll
 	public static void beforeAll() {
@@ -32,47 +34,74 @@ public class RecordConverterTests {
 		final JsonDeserializer jsonDeserializer = new JsonDeserializer();
 		final ObjectMapper objectMapper = new ObjectMapper();
 
-//		recordConverter = new RecordConverter(jsonConverter, jsonDeserializer, objectMapper);
+		edgeMetadataCache = new EdgeMetadataCache();
+		recordConverter = new RecordConverter(edgeMetadataCache, jsonConverter, jsonDeserializer, objectMapper);
 	}
 
 	@Test
-	public void convertSchemafulRecordReturnsArangoRecord() {
-		// Set up stub data
-		final Struct keyStub = new Struct(this.keyStructSchema).put("md_material_id", 1234);
-		final Struct valueStub = new Struct(this.valueStructSchema).put("materila_num", "1000-05801").put("materila_name", "喷嘴座");
-		final SinkRecord sinkRecordStub = new SinkRecord("ibom.mstdata.md_materila", 1, keyStub.schema(), keyStub, valueStub.schema(), valueStub, 0);
+	public void convertVertexEquals() {
+		Map<String, String> value = new LinkedHashMap<>();
+		value.put("materila_num", "1000-05801");
+		value.put("materila_name", "喷嘴座");
 
-		final ArangoVertex expectedArangoVertex = new ArangoVertex("md_materila", "1234",
+		final SinkRecord sinkRecord = SinkRecordUtils.create("ibom.mstdata.md_material", Collections.singletonMap("md_material_id", "1234"), value);
+
+		final ArangoVertex arangoVertex = recordConverter.convertVertex(sinkRecord);
+
+		final ArangoVertex expectedArangoVertex = new ArangoVertex("md_material", "1234",
 				"{\"materila_num\":\"1000-05801\",\"materila_name\":\"喷嘴座\",\"_key\":\"1234\"}");
 
-//		final ArangoVertex arangoVertex = recordConverter.convert(sinkRecordStub);
-
-//		assertEquals(expectedArangoVertex, arangoVertex);
+		assertEquals(expectedArangoVertex, arangoVertex);
 	}
 
 	@Test
-	public void convertSchemafulTombstoneRecordReturnsArangoRecord() {
-		final Struct keyStub = new Struct(this.keyStructSchema).put("md_material_id", 1234);
-		final Struct valueStub = null;
-		final SinkRecord sinkRecordStub = new SinkRecord("ibom.mstdata.md_materila", 1, this.keyStructSchema, keyStub, this.valueStructSchema, valueStub, 0);
+	public void convertDeleteVertex() {
+		final SinkRecord sinkRecord = SinkRecordUtils.create("ibom.bommgmt.bm_part_assembly", Collections.singletonMap("bm_part_assembly_id", "100"), null);
+		final ArangoVertex arangoVertex = recordConverter.convertVertex(sinkRecord);
 
-		final ArangoVertex expectedArangoVertex = new ArangoVertex("md_materila", "1234", null);
+		final ArangoVertex expectedArangoVertex = new ArangoVertex("test1_collection", "100", null);
 
-//		final ArangoVertex arangoVertex = recordConverter.convert(sinkRecordStub);
-
-//		assertEquals(expectedArangoVertex, arangoVertex);
+		assertEquals(expectedArangoVertex, arangoVertex);
 	}
 
 	@Test
-	public void convertSchemafulNonSingleObjectRecordThrowsException() {
-		final Struct keyStub = new Struct(this.keyStructSchema).put("md_material_id", 1234);
-		final List<Struct> valueStub = Arrays.asList(new Struct(this.valueStructSchema).put("materila_num", "1000-05801").put("materila_name", "喷嘴座"),
-				new Struct(this.valueStructSchema).put("materila_num", "1000-05801-1").put("materila_name", "喷嘴座"));
+	public void convertEdgeEquals() {
 
-		final SinkRecord sinkRecordStub = new SinkRecord("ibom.mstdata.md_materila", 1, this.keyStructSchema, keyStub,
-				SchemaBuilder.array(this.valueStructSchema).build(), valueStub, 0);
+		edgeMetadataCache.add(new EdgeMetadata("1", "test1_collection", "bm_part_assembly", "master_part_id", "md_material", "md_material_id"));
+		edgeMetadataCache.add(new EdgeMetadata("2", "test2_collection", "bm_part_assembly", "sub_part_id", "md_material", "md_material_id"));
 
-//		Exception thrownException = assertThrows(IllegalArgumentException.class, () -> recordConverter.convert(sinkRecordStub));
-//		assertEquals("record value is not a single object/document", thrownException.getMessage());
+
+		Map<String, String> value = new LinkedHashMap<>();
+		value.put("master_part_id", "200");
+		value.put("sub_part_id", "300");
+
+		final SinkRecord sinkRecord = SinkRecordUtils.create("ibom.bommgmt.bm_part_assembly", Collections.singletonMap("bm_part_assembly_id", "100"), value);
+		final ArangoVertex arangoVertex = recordConverter.convertVertex(sinkRecord);
+
+		final List<ArangoEdge> arangoEdges = recordConverter.convertEdge(arangoVertex);
+
+		List<ArangoEdge> expectedArangoEdges = new ArrayList<>();
+		expectedArangoEdges.add(new ArangoEdge("test1_collection", "bm_part_assembly/100", "md_material/200"));
+		expectedArangoEdges.add(new ArangoEdge("test2_collection", "bm_part_assembly/100", "md_material/300"));
+
+		assertEquals(expectedArangoEdges, arangoEdges);
+	}
+
+	@Test
+	public void convertDeleteEdge() {
+
+		edgeMetadataCache.add(new EdgeMetadata("1", "test1_collection", "bm_part_assembly", "master_part_id", "md_material", "md_material_id"));
+		edgeMetadataCache.add(new EdgeMetadata("2", "test2_collection", "bm_part_assembly", "sub_part_id", "md_material", "md_material_id"));
+
+		final SinkRecord sinkRecord = SinkRecordUtils.create("ibom.bommgmt.bm_part_assembly", Collections.singletonMap("bm_part_assembly_id", "100"), null);
+		final ArangoVertex arangoVertex = recordConverter.convertVertex(sinkRecord);
+
+		final List<ArangoEdge> arangoEdges = recordConverter.convertEdge(arangoVertex);
+
+		List<ArangoEdge> expectedArangoEdges = new ArrayList<>();
+		expectedArangoEdges.add(new ArangoEdge("test1_collection", "bm_part_assembly/100", null));
+		expectedArangoEdges.add(new ArangoEdge("test2_collection", "bm_part_assembly/100", null));
+
+		assertEquals(expectedArangoEdges, arangoEdges);
 	}
 }

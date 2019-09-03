@@ -9,10 +9,6 @@ import org.apache.kafka.connect.connector.Task;
 import org.apache.kafka.connect.sink.SinkConnector;
 import org.junit.jupiter.api.Test;
 
-import com.gant.kafka.connect.arangodb.ArangoDbSinkConnector;
-import com.gant.kafka.connect.arangodb.ArangoDbSinkTask;
-import com.gant.kafka.connect.arangodb.config.ArangoDbSinkConfig;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class ArangoDbSinkConnectorTests {

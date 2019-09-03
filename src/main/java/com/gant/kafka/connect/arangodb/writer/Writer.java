@@ -10,6 +10,7 @@ import org.slf4j.LoggerFactory;
 
 import com.arangodb.ArangoCollection;
 import com.arangodb.ArangoDatabase;
+import com.arangodb.model.CollectionCreateOptions;
 import com.gant.kafka.connect.arangodb.entity.ArangoBase;
 
 
@@ -97,10 +98,12 @@ public abstract class Writer {
 	protected ArangoCollection getCollection(final String collection) {
 		final ArangoCollection arangoCollection = this.database.collection(collection);
 		if (!arangoCollection.exists()) {
-			arangoCollection.create();
+			arangoCollection.create(getCollectionOptions());
 		}
 		return arangoCollection;
 	}
+
+	protected abstract CollectionCreateOptions getCollectionOptions();
 
 	protected abstract void deleteBatch(final String collection, final List<ArangoBase> records);
 
