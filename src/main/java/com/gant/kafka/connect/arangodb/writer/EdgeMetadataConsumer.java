@@ -50,6 +50,14 @@ public class EdgeMetadataConsumer extends ShutdownableThread {
 	}
 
 	@Override
+	public void shutdown() {
+		if (consumer != null) {
+			consumer.close();
+		}
+		super.shutdown();
+	}
+
+	@Override
 	public void doWork() {
 		consumer.subscribe(Collections.singletonList(config.edgeMetadataTopic));
 		ConsumerRecords<JsonNode, JsonNode> records = consumer.poll(Duration.ofSeconds(1));

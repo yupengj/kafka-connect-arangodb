@@ -1,5 +1,5 @@
 {
-  "name": "arangodb-sink-test",
+  "name": "arangodb-sink-test1",
   "config": {
     "connector.class": "com.gant.kafka.connect.arangodb.ArangoDbSinkConnector",
     "tasks.max": "1",

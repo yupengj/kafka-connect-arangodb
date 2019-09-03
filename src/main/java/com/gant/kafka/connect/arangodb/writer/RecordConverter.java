@@ -171,7 +171,7 @@ public class RecordConverter {
 		if (toKey == null) {
 			return new ArangoEdge(edgeMetadata.getEdgeCollection(), from, null);
 		}
-		String to = edgeMetadata.getToCollection() + "/" + toKey.textValue();
+		String to = edgeMetadata.getToCollection() + "/" + toKey.asText();
 		return new ArangoEdge(edgeMetadata.getEdgeCollection(), from, to);
 	}
 

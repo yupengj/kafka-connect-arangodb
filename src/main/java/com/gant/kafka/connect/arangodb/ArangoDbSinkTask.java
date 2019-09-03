@@ -37,6 +37,7 @@ public class ArangoDbSinkTask extends SinkTask {
 	private static final Logger LOGGER = LoggerFactory.getLogger(ArangoDbSinkTask.class);
 
 	private EdgeMetadataCache edgeMetadataCache;
+	private EdgeMetadataConsumer edgeMetadataConsumer;
 	private RecordConverter recordConverter;
 	private Writer vertexWriter;
 	private Writer edgeWriter;
@@ -68,11 +69,10 @@ public class ArangoDbSinkTask extends SinkTask {
 		objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);// 转 java 对象时忽略 class 没有的属性
 
 		this.edgeMetadataCache = new EdgeMetadataCache();
-
-		new EdgeMetadataConsumer(config, edgeMetadataCache).start();
+		this.edgeMetadataConsumer = new EdgeMetadataConsumer(config, edgeMetadataCache);
+		this.edgeMetadataConsumer.start();
 
 		this.recordConverter = new RecordConverter(edgeMetadataCache, jsonConverter, jsonDeserializer, objectMapper);
-
 		this.vertexWriter = new VertexWriter(database);
 		this.edgeWriter = new EdgeWriter(database);
 	}
@@ -115,5 +115,8 @@ public class ArangoDbSinkTask extends SinkTask {
 
 	@Override
 	public final void stop() {
+		if (this.edgeMetadataConsumer != null) {
+			this.edgeMetadataConsumer.shutdown();
+		}
 	}
 }
