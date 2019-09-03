@@ -6,8 +6,6 @@ import java.util.Map;
 import com.arangodb.ArangoDB;
 import com.arangodb.ArangoDatabase;
 import com.gant.kafka.connect.arangodb.ArangoDbSinkConfig;
-import com.gant.kafka.connect.arangodb.writer.EdgeMetadataCache;
-import com.gant.kafka.connect.arangodb.writer.EdgeMetadataConsumer;
 
 public class ArangodbTestUtils {
 
@@ -29,19 +27,6 @@ public class ArangodbTestUtils {
 		originalsStub.put("edge.metadata.topic", "ibom.mstdata.md_relation_metadata");
 
 		return originalsStub;
-	}
-
-
-	public static EdgeMetadataCache cache() {
-		EdgeMetadataCache edgeMetadataCache = new EdgeMetadataCache();
-		EdgeMetadataConsumer edgeMetadataConsumer = new EdgeMetadataConsumer(config(), edgeMetadataCache);
-		edgeMetadataConsumer.start();
-		try {
-			Thread.sleep(15 * 1000);
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		}
-		return edgeMetadataCache;
 	}
 
 	public static ArangoDatabase database() {

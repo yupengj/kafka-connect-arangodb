@@ -4,7 +4,6 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import com.gant.kafka.connect.arangodb.ArangoDbSinkConfig;
-import com.gant.kafka.connect.arangodb.entity.EdgeMetadata;
 import com.gant.kafka.connect.arangodb.util.ArangodbTestUtils;
 
 public class EdgeMetadataConsumerTest {
@@ -21,18 +20,18 @@ public class EdgeMetadataConsumerTest {
 	}
 
 	@Test
-	public void execute() throws InterruptedException {
-		edgeMetadataConsumer.start();
+	public void run() throws InterruptedException {
+		Thread thread = new Thread(edgeMetadataConsumer);
 
-		Thread.sleep(30 * 1000);
+		thread.start();
+
+		Thread.sleep(5 * 1000);
+
+		edgeMetadataConsumer.shutdown();
+
+		thread.interrupt();
+
 		System.out.println("cache size: " + edgeMetadataCache.getCache().size());
-		System.out.println("==============");
-
-		for (EdgeMetadata edgeMetadata : edgeMetadataCache.getCache()) {
-			System.out.println(edgeMetadata);
-		}
-
-		System.out.println("==============");
 	}
 
 

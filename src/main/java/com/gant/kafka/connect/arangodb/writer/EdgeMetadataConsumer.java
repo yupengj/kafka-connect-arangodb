@@ -6,12 +6,12 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
-import kafka.utils.ShutdownableThread;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.common.config.ConfigException;
+import org.apache.kafka.common.errors.WakeupException;
 import org.apache.kafka.connect.errors.DataException;
 import org.apache.kafka.connect.json.JsonDeserializer;
 import org.slf4j.Logger;
@@ -22,8 +22,7 @@ import com.fasterxml.jackson.databind.node.NullNode;
 import com.gant.kafka.connect.arangodb.ArangoDbSinkConfig;
 import com.gant.kafka.connect.arangodb.entity.EdgeMetadata;
 
-public class EdgeMetadataConsumer extends ShutdownableThread {
-
+public class EdgeMetadataConsumer implements Runnable {
 	private static final Logger LOGGER = LoggerFactory.getLogger(EdgeMetadataConsumer.class);
 
 	private final KafkaConsumer<JsonNode, JsonNode> consumer;
@@ -32,9 +31,7 @@ public class EdgeMetadataConsumer extends ShutdownableThread {
 	private static Map<String, String> EDGE_METADATA_ATTRIBUTE_MAP;
 
 	public EdgeMetadataConsumer(final ArangoDbSinkConfig config, final EdgeMetadataCache edgeMetadataCache) {
-		super("edgeMetadataConsumer", false);
-
-		LOGGER.info("init EdgeMetadataConsumer  servers {} topic {}", config.bootstrapServers, config.edgeMetadataTopic);
+		LOGGER.info("init EdgeMetadataConsumer servers {} topic {}", config.bootstrapServers, config.edgeMetadataTopic);
 
 		Properties props = new Properties();
 		props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, config.bootstrapServers);
@@ -50,20 +47,28 @@ public class EdgeMetadataConsumer extends ShutdownableThread {
 		EDGE_METADATA_ATTRIBUTE_MAP = edgeMetadataAttributeMap();
 	}
 
-	@Override
+
 	public void shutdown() {
-		if (consumer != null) {
-			consumer.close();
-		}
-		super.shutdown();
+		consumer.wakeup();
 	}
 
 	@Override
-	public void doWork() {
+	public void run() {
+		// 启动消费者线程时，清除缓存中数据
+		edgeMetadataCache.clear();
 		consumer.subscribe(Collections.singletonList(config.edgeMetadataTopic));
-		ConsumerRecords<JsonNode, JsonNode> records = consumer.poll(Duration.ofSeconds(1));
-		for (ConsumerRecord<JsonNode, JsonNode> record : records) {
-			edgeMetadataCache.add(convert(record.key(), record.value()));
+		try {
+			while (true) {
+				ConsumerRecords<JsonNode, JsonNode> records = consumer.poll(Duration.ofSeconds(1));
+				for (ConsumerRecord<JsonNode, JsonNode> record : records) {
+					edgeMetadataCache.add(convert(record.key(), record.value()));
+				}
+			}
+		} catch (WakeupException e) {
+			LOGGER.info(e.getMessage());
+		} finally {
+			LOGGER.info("close EdgeMetadataConsumer");
+			consumer.close();
 		}
 	}
 
@@ -103,6 +108,7 @@ public class EdgeMetadataConsumer extends ShutdownableThread {
 		return jn.asText();
 	}
 
+
 	private Map<String, String> edgeMetadataAttributeMap() {
 		final String edgeMetadataAttributeMap = config.edgeMetadataAttributeMap;
 		if (edgeMetadataAttributeMap == null || edgeMetadataAttributeMap.isEmpty()) {
@@ -115,16 +121,6 @@ public class EdgeMetadataConsumer extends ShutdownableThread {
 			map.put(mapArr[0], mapArr[1]);
 		}
 		return map;
-	}
-
-	@Override
-	public String name() {
-		return null;
-	}
-
-	@Override
-	public boolean isInterruptible() {
-		return false;
 	}
 
 }

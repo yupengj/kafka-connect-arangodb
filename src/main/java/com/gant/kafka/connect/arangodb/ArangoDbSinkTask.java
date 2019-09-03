@@ -39,6 +39,7 @@ public class ArangoDbSinkTask extends SinkTask {
 
 	private EdgeMetadataCache edgeMetadataCache;
 	private EdgeMetadataConsumer edgeMetadataConsumer;
+	private Thread edgeMetadataConsumerThread;
 	private RecordConverter recordConverter;
 	private Writer vertexWriter;
 	private Writer edgeWriter;
@@ -71,7 +72,8 @@ public class ArangoDbSinkTask extends SinkTask {
 
 		this.edgeMetadataCache = new EdgeMetadataCache();
 		this.edgeMetadataConsumer = new EdgeMetadataConsumer(config, edgeMetadataCache);
-		this.edgeMetadataConsumer.start();
+		this.edgeMetadataConsumerThread = new Thread(edgeMetadataConsumer);
+		this.edgeMetadataConsumerThread.start();
 
 		this.recordConverter = new RecordConverter(edgeMetadataCache, jsonConverter, jsonDeserializer, objectMapper);
 		this.vertexWriter = new VertexWriter(database);
@@ -118,8 +120,12 @@ public class ArangoDbSinkTask extends SinkTask {
 
 	@Override
 	public final void stop() {
+		LOGGER.info("stop ArangoDbSinkTask ...");
 		if (this.edgeMetadataConsumer != null) {
 			this.edgeMetadataConsumer.shutdown();
+		}
+		if (edgeMetadataConsumerThread != null) {
+			edgeMetadataConsumerThread.interrupt();
 		}
 	}
 }

@@ -18,11 +18,17 @@ public class EdgeMetadataCache {
 		return relationCache;
 	}
 
+	public final void clear() {
+		LOGGER.info("EdgeMetadataCache clear size {}", relationCache.size());
+		relationCache.clear();
+	}
+
+
 	public void add(EdgeMetadata edgeMetadata) {
 		if (edgeMetadata != null) {
 			if (edgeMetadata.getEdgeCollection() == null) {// 删除元数据操作
 				// 查找要删除的元数据，如果没有找到忽略
-				EdgeMetadata delete = relationCache.stream().filter(it -> it.getKey().equals(edgeMetadata.getKey())).findFirst().orElseGet(null);
+				EdgeMetadata delete = relationCache.stream().filter(it -> it.getKey().equals(edgeMetadata.getKey())).findFirst().orElse(null);
 				if (delete == null) {
 					return;
 				}
