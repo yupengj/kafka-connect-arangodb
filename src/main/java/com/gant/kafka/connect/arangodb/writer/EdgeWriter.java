@@ -24,12 +24,16 @@ public class EdgeWriter extends Writer {
 	protected void deleteBatch(String collection, List<ArangoBase> records) {
 		if (collection == null || collection.isEmpty() || records == null || records.isEmpty()) {
 			return;
-		}
+		}//from/id from_id
 		final ArangoCollection arangoCollection = database.collection(collection);
 		if (!arangoCollection.exists()) { // 要删除的数据所在的集合不存在忽略
 			return;
 		}
-
+		/**
+		 * for e in fk_affected_part_change_id_ref_change
+		 *     filter [e._from, e._to] any in ["chg_affected_part/7","md_change/223"]
+		 *     remove e._key in fk_affected_part_change_id_ref_change
+		 */
 		String aql = "for i in @vertexKey for u in " + collection + " filter u._from == i or u._to == i remove u._key in " + collection;
 		String options = " options { ignoreErrors: true, waitForSync: true }"; // 忽略 doc 不存在时报错，同步等待
 

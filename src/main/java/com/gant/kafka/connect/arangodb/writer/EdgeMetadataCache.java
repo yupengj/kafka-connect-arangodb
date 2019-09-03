@@ -21,9 +21,14 @@ public class EdgeMetadataCache {
 	public void add(EdgeMetadata edgeMetadata) {
 		if (edgeMetadata != null) {
 			if (edgeMetadata.getEdgeCollection() == null) {// 删除元数据操作
+				// 查找要删除的元数据，如果没有找到忽略
+				EdgeMetadata delete = relationCache.stream().filter(it -> it.getKey().equals(edgeMetadata.getKey())).findFirst().orElseGet(null);
+				if (delete == null) {
+					return;
+				}
 				LOGGER.info(" remove edgeMetadata {}", edgeMetadata);
-				relationCache.remove(edgeMetadata);
-				removeRelation.add(edgeMetadata);
+				relationCache.remove(delete); // 把找到的记录从缓存中删除
+				removeRelation.add(delete); // 把删除的元数据放入删除集合
 			} else {
 				LOGGER.info(" add edgeMetadata {}", edgeMetadata);
 				relationCache.add(edgeMetadata);

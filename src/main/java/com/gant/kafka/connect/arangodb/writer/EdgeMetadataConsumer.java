@@ -18,6 +18,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.NullNode;
 import com.gant.kafka.connect.arangodb.ArangoDbSinkConfig;
 import com.gant.kafka.connect.arangodb.entity.EdgeMetadata;
 
@@ -71,7 +72,8 @@ public class EdgeMetadataConsumer extends ShutdownableThread {
 		EdgeMetadata edgeMetadata = new EdgeMetadata();
 		edgeMetadata.setKey(getValue(EdgeMetadata.KEY, jsonNodeKey));
 
-		if (value == null || value.get("payload") == null || value.get("payload").get("after") == null) {
+		if (value == null || value instanceof NullNode || value.get("payload") == null || value.get("payload") instanceof NullNode
+				|| value.get("payload").get("after") == null || value.get("payload").get("after") instanceof NullNode) {
 			return edgeMetadata; // 删除元数据操作
 		}
 

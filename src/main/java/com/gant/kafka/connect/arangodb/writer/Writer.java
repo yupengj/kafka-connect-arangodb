@@ -29,7 +29,10 @@ public abstract class Writer {
 			return;
 		}
 		for (String collection : collections) {
-			database.collection(collection).drop();
+			final ArangoCollection collection1 = database.collection(collection);
+			if (collection1.exists()) {
+				collection1.drop();
+			}
 		}
 	}
 

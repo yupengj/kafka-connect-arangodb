@@ -1,9 +1,9 @@
 -- 查询主外键关系
 SELECT tc.constraint_name,
-       tc.table_schema || '.' || tc.table_name   as from_table,
-       kcu.column_name                           as from_column,
-       ccu.table_schema || '.' || ccu.table_name AS to_table,
-       ccu.column_name                           AS to_column
+       tc.table_name   as from_table,
+       kcu.column_name as from_column,
+       ccu.table_name  AS to_table,
+       ccu.column_name AS to_column
 FROM information_schema.table_constraints AS tc
          JOIN information_schema.key_column_usage AS kcu ON tc.constraint_name = kcu.constraint_name
          JOIN information_schema.constraint_column_usage AS ccu ON ccu.constraint_name = tc.constraint_name
@@ -18,8 +18,7 @@ CREATE TABLE if not exists mstdata.md_relation_metadata
     from_table      text,
     from_column     text,
     to_table        text,
-    to_column       text,
-    label           text default 'foreign_key'
+    to_column       text
 );
 
 -- 还需要一个唯一键 from_table + from_column + to_table + to_column
@@ -28,10 +27,10 @@ CREATE TABLE if not exists mstdata.md_relation_metadata
 -- 插入数据
 insert into mstdata.md_relation_metadata(constraint_name, from_table, from_column, to_table, to_column)
 SELECT tc.constraint_name,
-       tc.table_schema || '.' || tc.table_name   as from_table,
-       kcu.column_name                           as from_column,
-       ccu.table_schema || '.' || ccu.table_name AS to_table,
-       ccu.column_name                           AS to_column
+       tc.table_name   as from_table,
+       kcu.column_name as from_column,
+       ccu.table_name  AS to_table,
+       ccu.column_name AS to_column
 FROM information_schema.table_constraints AS tc
          JOIN information_schema.key_column_usage AS kcu ON tc.constraint_name = kcu.constraint_name
          JOIN information_schema.constraint_column_usage AS ccu ON ccu.constraint_name = tc.constraint_name
