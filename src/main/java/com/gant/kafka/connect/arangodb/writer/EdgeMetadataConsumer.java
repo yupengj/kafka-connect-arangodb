@@ -49,7 +49,9 @@ public class EdgeMetadataConsumer implements Runnable {
 
 
 	public void shutdown() {
-		consumer.wakeup();
+		if (consumer != null) {
+			consumer.wakeup();
+		}
 	}
 
 	@Override
