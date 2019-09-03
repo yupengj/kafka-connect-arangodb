@@ -50,8 +50,10 @@ WHERE constraint_type = 'FOREIGN KEY';
 | `arangodb.database.name`    | ArangoDB database name.             | string   |         | high       |
 / `edge.metadata.kafka.servers` |边元数据主题所在的 kafka 地址         | string  |          | high       |
 | `edge.metadata.topic`         | 边元数据主题名称.                     | string |         | high       |
-| `edge.metadata.attribute.map` | 连接器中边元数据属性和 kafka 中边元数据主题字段映射 | string | "key:id,edgeCollection:constraint_name,fromCollection:from_table,fromAttribute:from_column,toCollection:to_table,toAttribute:to_column"| high       |
+| `edge.metadata.attribute.map` | 连接器中边元数据属性和 kafka 中边元数据主题字段映射 | string | 如下| high       |
 
+> edge.metadata.attribute.map 默认值： "key:id,edgeCollection:constraint_name,fromCollection:from_table,fromAttribute:from_column,toCollection:to_table,
+toAttribute:to_column"
 
 ## 使用
 
