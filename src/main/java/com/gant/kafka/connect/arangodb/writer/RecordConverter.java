@@ -18,6 +18,7 @@ import org.slf4j.LoggerFactory;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.NullNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.gant.kafka.connect.arangodb.entity.ArangoEdge;
 import com.gant.kafka.connect.arangodb.entity.ArangoVertex;
@@ -168,9 +169,14 @@ public class RecordConverter {
 		}
 
 		final JsonNode toKey = jsonNodes.get(edgeMetadata.getFromAttribute());
-		if (toKey == null) {
+		if (toKey == null || toKey instanceof NullNode) {
 			return new ArangoEdge(edgeMetadata.getEdgeCollection(), from, null);
 		}
+		String toKeyStr = toKey.asText(null);
+		if (toKeyStr == null || toKeyStr.equals("null") || toKeyStr.trim().length() == 0) {
+			return new ArangoEdge(edgeMetadata.getEdgeCollection(), from, null);
+		}
+
 		String to = edgeMetadata.getToCollection() + "/" + toKey.asText();
 		return new ArangoEdge(edgeMetadata.getEdgeCollection(), from, to);
 	}

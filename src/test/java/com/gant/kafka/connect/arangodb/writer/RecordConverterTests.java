@@ -6,6 +6,9 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.kafka.connect.data.Schema;
+import org.apache.kafka.connect.data.SchemaBuilder;
+import org.apache.kafka.connect.data.Struct;
 import org.apache.kafka.connect.json.JsonConverter;
 import org.apache.kafka.connect.json.JsonConverterConfig;
 import org.apache.kafka.connect.json.JsonDeserializer;
@@ -66,10 +69,8 @@ public class RecordConverterTests {
 
 	@Test
 	public void convertEdgeEquals() {
-
 		edgeMetadataCache.add(new EdgeMetadata("1", "test1_collection", "bm_part_assembly", "master_part_id", "md_material", "md_material_id"));
 		edgeMetadataCache.add(new EdgeMetadata("2", "test2_collection", "bm_part_assembly", "sub_part_id", "md_material", "md_material_id"));
-
 
 		Map<String, String> value = new LinkedHashMap<>();
 		value.put("master_part_id", "200");
@@ -100,6 +101,37 @@ public class RecordConverterTests {
 
 		List<ArangoEdge> expectedArangoEdges = new ArrayList<>();
 		expectedArangoEdges.add(new ArangoEdge("test1_collection", "bm_part_assembly/100", null));
+		expectedArangoEdges.add(new ArangoEdge("test2_collection", "bm_part_assembly/100", null));
+
+		assertEquals(expectedArangoEdges, arangoEdges);
+	}
+
+	@Test
+	public void convertEmpty() {
+		edgeMetadataCache.add(new EdgeMetadata("1", "test1_collection", "bm_part_assembly", "master_part_id", "md_material", "md_material_id"));
+		edgeMetadataCache.add(new EdgeMetadata("2", "test2_collection", "bm_part_assembly", "sub_part_id", "md_material", "md_material_id"));
+
+		SchemaBuilder builderKey = SchemaBuilder.struct();
+		builderKey.field("bm_part_assembly_id", Schema.INT64_SCHEMA);
+
+		Struct structKey = new Struct(builderKey.schema());
+		structKey.put("bm_part_assembly_id", 100L);
+
+		SchemaBuilder builderValue = SchemaBuilder.struct();
+		builderValue.field("master_part_id", Schema.INT64_SCHEMA);
+//		builderValue.field("sub_part_id", Schema.INT64_SCHEMA);
+
+		Struct structValue = new Struct(builderValue.schema());
+		structValue.put("master_part_id", 100L);
+//		structValue.put("sub_part_id", null);
+
+		SinkRecord sinkRecord = new SinkRecord("ibom.bommgmt.bm_part_assembly", 0, builderKey.schema(), structKey, builderValue.schema(), structValue, 0);
+		final ArangoVertex arangoVertex = recordConverter.convertVertex(sinkRecord);
+
+		final List<ArangoEdge> arangoEdges = recordConverter.convertEdge(arangoVertex);
+
+		List<ArangoEdge> expectedArangoEdges = new ArrayList<>();
+		expectedArangoEdges.add(new ArangoEdge("test1_collection", "bm_part_assembly/100", "md_material/100"));
 		expectedArangoEdges.add(new ArangoEdge("test2_collection", "bm_part_assembly/100", null));
 
 		assertEquals(expectedArangoEdges, arangoEdges);

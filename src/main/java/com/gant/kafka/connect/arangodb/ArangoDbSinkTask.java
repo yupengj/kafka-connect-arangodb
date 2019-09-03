@@ -102,7 +102,8 @@ public class ArangoDbSinkTask extends SinkTask {
 		LOGGER.info("writing {} vertex. time {}", arangoVertices.size(), System.currentTimeMillis() - start);
 
 		start = System.currentTimeMillis();
-		arangoEdges.sort(Comparator.comparing(it -> it.collection));// 按 collection 排序，同一个 collection 批量处理
+		final Comparator<ArangoBase> comparing = Comparator.comparing(fun -> fun.collection);
+		arangoEdges.sort(comparing.thenComparing(fun -> fun.op));// 按 collection 排序，同一个 collection 批量处理
 		this.edgeWriter.write(arangoEdges);
 		LOGGER.info("writing {} edge. time {}", arangoEdges.size(), System.currentTimeMillis() - start);
 
