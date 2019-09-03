@@ -1,0 +1,94 @@
+version: '2'
+services:
+  zookeeper:
+    image: confluentinc/cp-zookeeper:5.3.0
+    container_name: zookeeper
+    hostname: zookeeper
+    #    network_mode: host
+    ports:
+      - "2181:2181"
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+
+  kafka:
+    image: confluentinc/cp-kafka:5.3.0
+    container_name: kafka
+    #    network_mode: host
+    hostname: kafka
+    ports:
+      - "9092:9092"
+    links:
+      - zookeeper
+    environment:
+      KAFKA_BROKER_ID: 1 # 设置 broker_id 属性时 kafka 的 ip 换了也不会影响 topics 的读取。
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://192.168.4.109:9092 # 192.168.1.6 是虚拟机的iP , 如果是本地就可以写 localhost:9092
+      KAFKA_CREATE_TOPICS: "test1:1:1" # 自动创建一个 名称为 test1 的 topic 分区是1 副本是1
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_LOG_RETENTION_HOURS: 700800
+      KAFKA_MAX_PARTITION_FETCH_BYTES: 5242880
+      KAFKA_MAX_POLL_RECORDS: 500
+    volumes:
+      - ./kafka/data:/var/lib/kafka/data # kafak 数据挂载到主机地址
+
+  connect:
+    image: confluentinc/cp-kafka-connect:5.3.0
+    container_name: kafka-connect
+    #    network_mode: host
+    hostname: kafka-connect
+    ports:
+      - "8083:8083"
+    links:
+      - zookeeper
+      - kafka
+    environment:
+      CONNECT_BOOTSTRAP_SERVERS: kafka:9092
+      CONNECT_REST_PORT: 8083
+      CONNECT_REST_ADVERTISED_HOST_NAME: "kafka-connect"
+      CONNECT_GROUP_ID: kafka-connect
+      CONNECT_ZOOKEEPER_CONNECT: zookeeper:2181
+      CONNECT_CONFIG_STORAGE_TOPIC: kafka-connect-config
+      CONNECT_OFFSET_STORAGE_TOPIC: kafka-connect-offsets
+      CONNECT_STATUS_STORAGE_TOPIC: kafka-connect-status
+      CONNECT_CONFIG_STORAGE_REPLICATION_FACTOR: 1
+      CONNECT_OFFSET_STORAGE_REPLICATION_FACTOR: 1
+      CONNECT_STATUS_STORAGE_REPLICATION_FACTOR: 1
+      CONNECT_KEY_CONVERTER: "org.apache.kafka.connect.json.JsonConverter"
+      CONNECT_VALUE_CONVERTER: "org.apache.kafka.connect.json.JsonConverter"
+      CONNECT_INTERNAL_KEY_CONVERTER: "org.apache.kafka.connect.json.JsonConverter"
+      CONNECT_INTERNAL_VALUE_CONVERTER: "org.apache.kafka.connect.json.JsonConverter"
+      CONNECT_PLUGIN_PATH: /usr/share/java,/etc/kafka-connect/jars
+      CONNECT_MAX_PARTITION_FETCH_BYTES: 5242880
+      CONNECT_MAX_POLL_RECORDS: 500
+      CONSUMER_MAX_PARTITION_FETCH_BYTES: 5242880
+      CONSUMER_MAX_POLL_RECORDS: 500
+    volumes:
+      - ./connect-plugins:/etc/kafka-connect/jars # 容器插件挂载地址，把插件的 jar 包放到挂载的目录，启动时该容器就可以自动加载插件
+
+  postgresql:
+    image: debezium/postgres:10
+    container_name: postgres
+    #    network_mode: host
+    hostname: postgresql
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: postgres
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - ./postgresql/data:/var/lib/postgresql/data
+
+  # 图数据库相关
+  arangodb:
+    image: arangodb/arangodb:3.5.0
+    container_name: arangodb
+    #    network_mode: host
+    hostname: arangodb
+    ports:
+      - 8529:8529
+    environment:
+      ARANGO_ROOT_PASSWORD: arangodb
+    volumes:
+      - ./arangodb-data:/var/lib/arangodb3
+      - ./arangodb-app-data:/var/lib/arangodb3-apps

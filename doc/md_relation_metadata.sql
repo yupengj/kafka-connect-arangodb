@@ -20,10 +20,6 @@ CREATE TABLE if not exists mstdata.md_relation_metadata
     to_table        text,
     to_column       text
 );
-
--- 还需要一个唯一键 from_table + from_column + to_table + to_column
--- 需要一个触发器
-
 -- 插入数据
 insert into mstdata.md_relation_metadata(constraint_name, from_table, from_column, to_table, to_column)
 SELECT tc.constraint_name,
@@ -39,3 +35,6 @@ WHERE constraint_type = 'FOREIGN KEY';
 -- 查询
 select *
 from mstdata.md_relation_metadata mrm;
+
+-- 还需要一个唯一键 from_table + from_column + to_table + to_column
+-- 需要一个触发器
