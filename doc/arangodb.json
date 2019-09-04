@@ -5,7 +5,7 @@
     "tasks.max": "1",
     "key.converter": "org.apache.kafka.connect.json.JsonConverter",
     "value.converter": "org.apache.kafka.connect.json.JsonConverter",
-    "topics.regex": "^ibom[.].*",
+    "topics.regex": "^ibom[.].*(?<!_ext)$",
     "transforms": "cdc",
     "transforms.cdc.type": "com.gant.kafka.connect.arangodb.transforms.Cdc",
     "arangodb.host": "arangodb",
