@@ -10,7 +10,7 @@ FROM information_schema.table_constraints AS tc
 WHERE constraint_type = 'FOREIGN KEY' and ccu.table_name ~ '.*(?<!_ext)$'; -- 不是以 ‘_ext' 结尾的约束
 
 -- 创建关系表
-drop table mstdata.md_relation_metadata;
+drop table if exists mstdata.md_relation_metadata;
 CREATE TABLE if not exists mstdata.md_relation_metadata
 (
     id              serial primary key,

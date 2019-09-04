@@ -68,8 +68,18 @@ toAttribute:to_column"
 - [x] 处理边元数据的新增和删除
 - [x] 删除边 aql 语句优化
 - [x] 扩展表不同步到 arangodb 中
+- [x] bom主表不同步
+- [x] 测试批量导入和删除 BOM 数据连接器的性能 (1w条数据同步到arangodb大约30秒)
 
 ## 接下来计划
 - [ ] 元数据边采用触发器维护（不一定可行，如不可行采用手动维护）
-- [ ] 测试批量导入和删除 BOM 数据连接器的性能
-- [ ] bom主表不同步
+
+
+----
+## 相关文件
+
+- postgres 连接器配置文件 [postgres.json](doc/postgres.json)
+- arangodb 连接器配置文件 [arangodb.json](doc/arangodb.json)
+- arangodb 连接器 arangodb-java 驱动包 [arangodb-java-driver-6.0.0-SNAPSHOT-all.jar](doc/jar/arangodb-java-driver-6.0.0-SNAPSHOT-all.jar)
+- arangodb 连接器源码包 [kafka-connect-arangodb-2.0-SNAPSHOT.jar](doc/jar/kafka-connect-arangodb-2.0-SNAPSHOT.jar)
+- postgres 数据库中创建边元数据脚本文件 [md_relation_metadata.sql](doc/md_relation_metadata.sql)
