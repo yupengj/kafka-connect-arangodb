@@ -3,11 +3,14 @@
 arangodb 连接器可以实现根据 kafka 中的数据创建点，也可以根据 kafka 中指定边元数据主题创建边。
 
 ## 可以做什么
-- 可以根据 kafka 中主题中的数据创建顶点
+- 可以实时同步 kafka 主题中的数据创建顶点
+    > 可以实时同步 postgres 数据库中数据变化到 arangodb  数据库
 - 可以根据 kafka 指定主题中的边的元数据（关系数据库中的外键约束）创建边的关系。
-
+    >在同步数据时，可以根据 postgres 中外键约束自动创建 arangodb  数据库中的边数据
+    
 ### 关于顶点(每条数据)
-顶点就是每条数据，关系数据库中的每行记录
+- 顶点就是每条数据，关系数据库中的每行记录
+- 顶点存储在不同的 collection 中，collection 的名称就是关系数据库中的表名
 
 ### 关于边和边的元数据
 - 边的元数据是在关系数据库中根据外键约束生成脚本如下：
@@ -75,6 +78,10 @@ toAttribute:to_column"
 - [ ] 元数据边采用触发器维护（不一定可行，如不可行采用手动维护）
 
 
+## 实现原理
+
+![kafka_connect_arangodb](doc/images/kafka_connect_arangodb.png)
+
 ----
 ## 相关文件
 
@@ -83,3 +90,4 @@ toAttribute:to_column"
 - arangodb 连接器 arangodb-java 驱动包 [arangodb-java-driver-6.0.0-SNAPSHOT-all.jar](doc/jar/arangodb-java-driver-6.0.0-SNAPSHOT-all.jar)
 - arangodb 连接器源码包 [kafka-connect-arangodb-2.0-SNAPSHOT.jar](doc/jar/kafka-connect-arangodb-2.0-SNAPSHOT.jar)
 - postgres 数据库中创建边元数据脚本文件 [md_relation_metadata.sql](doc/md_relation_metadata.sql)
+- arangodb 连接器读取的数据格式文件 [sinkRecordData](doc/sinkRecordData.txt)
