@@ -24,6 +24,8 @@ repositories {
 }
 
 dependencies {
+    implementation('org.apache.kafka:kafka_2.12:2.3.0')
+    implementation 'org.apache.kafka:connect-runtime:2.3.0'
     implementation 'org.apache.kafka:connect-api:2.3.0'
     implementation 'org.apache.kafka:connect-json:2.3.0'
     implementation 'com.arangodb:arangodb-java-driver:6.0.0'
